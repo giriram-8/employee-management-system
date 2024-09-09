@@ -4,26 +4,22 @@
 
 
 <?php  
-
-
-        // database connection
+    // database connection
         require_once "../connection.php";
         
-
-        $session_email =  $_SESSION["email"];
-    $sql = "SELECT * FROM admin WHERE email= '$session_email' ";
+    $session_email =  $_SESSION["email_emp"];
+    $sql = "SELECT * FROM employee WHERE email= '$session_email' ";
     $result = mysqli_query($conn , $sql);
 
-    if(mysqli_num_rows($result) > 0 ){
-       
-        while($rows = mysqli_fetch_assoc($result) ){
-            $name = $rows["name"];
-            $email = $rows["email"];
-            $dob = $rows["dob"];
-            $gender = $rows["gender"];
-        }
+if(mysqli_num_rows($result) > 0 ){
+   
+    while($rows = mysqli_fetch_assoc($result) ){
+        $name = $rows["name"];
+        $email = $rows["email"];
+        $dob = $rows["dob"];
+        $gender = $rows["gender"];
     }
-
+}
         $nameErr = $emailErr = "";
         // $name = $email = $dob = $gender = "";
 
@@ -59,28 +55,30 @@
 
             if( !empty($name) && !empty($email) ){
             
-                $sql_select_query = "SELECT email FROM admin WHERE email = '$email' ";
+                // database connection
+                require_once "../connection.php";
+                $sql_select_query = "SELECT email FROM employee WHERE email = '$email' ";
                 $r = mysqli_query($conn , $sql_select_query);
 
                 if( mysqli_num_rows($r) > 0 ){
                     $emailErr = "<p style='color:red'> * Email Already Register</p>";
                 } else{
 
-                    $sql = "UPDATE admin SET name = '$name', email = '$email', dob = '$dob', gender= '$gender' WHERE email='$_SESSION[email]' ";
+                    $sql = "UPDATE employee SET name = '$name', email = '$email', dob = '$dob', gender= '$gender' WHERE email='$_SESSION[email_emp]' ";
                     $result = mysqli_query($conn , $sql);
                     if($result){
-                        $_SESSION['email']= $email;
+                        $_SESSION['email_emp']= $email;
                         echo "<script>
-                            $(document).ready( function(){
-                                $('#showModal').modal('show');
-                                $('#modalHead').hide();
-                                $('#linkBtn').attr('href', 'profile.php');
-                                $('#linkBtn').text('View Profile');
-                                $('#addMsg').text('Profile Edited Successfully!!');
-                                $('#closeBtn').hide();
-                            })
-                        </script>
-                        ";
+                        $(document).ready( function(){
+                            $('#showModal').modal('show');
+                            $('#modalHead').hide();
+                            $('#linkBtn').attr('href', 'profile.php');
+                            $('#linkBtn').text('View Profile');
+                            $('#addMsg').text('Profile Edited Successfully!!');
+                            $('#closeBtn').hide();
+                        })
+                    </script>
+                    ";
                     }
                 }
 

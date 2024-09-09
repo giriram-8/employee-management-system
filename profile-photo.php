@@ -20,7 +20,7 @@ require_once "include/header.php";
                 
                 // database connection 
                 require_once "../connection.php";
-                $sql = " UPDATE admin SET dp = '$new_file_name' WHERE email = '$_SESSION[email]' ";
+                $sql = "UPDATE employee SET dp = '$new_file_name' WHERE email = '$_SESSION[email_emp]' ";
                 $result = mysqli_query($conn , $sql);
                 if($result){
                     echo "<script>

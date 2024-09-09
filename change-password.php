@@ -31,13 +31,13 @@ require_once "include/header.php";
 
             require_once "../connection.php";
 
-            $check_old_pass = "SELECT password FROM admin WHERE email = '$_SESSION[email]' && password = '$old_pass' ";
+            $check_old_pass = "SELECT password FROM employee WHERE email = '$_SESSION[email_emp]' && password = '$old_pass' ";
             $result = mysqli_query($conn , $check_old_pass);
             if( mysqli_num_rows($result) > 0 ){
                
                 if( $new_pass === $confirm_pass ){
                   
-                    $change_pass_query = "UPDATE admin SET password = '$new_pass' WHERE email = '$_SESSION[email]' ";
+                    $change_pass_query = "UPDATE employee SET password = '$new_pass' WHERE email = '$_SESSION[email_emp]' ";
                     if (mysqli_query($conn , $change_pass_query) ){
                         session_unset();
                         session_destroy();

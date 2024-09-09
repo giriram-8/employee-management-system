@@ -6,45 +6,77 @@ require_once "include/header.php";
         // database connection
         require_once "../connection.php";
 
-         $currentDay = date( 'Y-m-d', strtotime("today") );
-         $tomarrow = date( 'Y-m-d', strtotime("+1 day") );
+         
+        $i = 1;
+        
 
-         $today_leave = 0;
-         $tomarrow_leave = 0;
-         $this_week = 0;
-         $next_week = 0;
-            $i = 1;
-        // total admin
-        $select_admins = "SELECT * FROM admin";
-        $total_admins = mysqli_query($conn , $select_admins);
 
-        // total employee
-        $select_emp = "SELECT * FROM employee";
-        $total_emp = mysqli_query($conn , $select_emp);
+        // applied leaves--------------------------------------------------------------------------------------------
+        $total_accepted = $total_pending = $total_canceled = $total_applied = 0;
+        $leave = "SELECT * FROM emp_leave WHERE email = '$_SESSION[email_emp]' ";
+        $result = mysqli_query($conn , $leave);
 
-        // employee on leave
-        $emp_leave  ="SELECT * FROM emp_leave";
-        $total_leaves = mysqli_query($conn , $emp_leave);
+        if( mysqli_num_rows($result) > 0 ){
 
-        if( mysqli_num_rows($total_leaves) > 0 ){
-            while( $leave = mysqli_fetch_assoc($total_leaves) ){
-                $leave = $leave["start_date"];
+            $total_applied = mysqli_num_rows($result);
 
-                //daywise
-                if($currentDay == $leave){
-                    $today_leave += 1;
-                }elseif($tomarrow == $leave){
-                   $tomarrow_leave += 1;
+            while( $leave_info = mysqli_fetch_assoc($result) ){
+                $status = $leave_info["status"];
+
+                if( $status == "pending" ){
+                    $total_pending += 1;
+                }elseif( $status == "Accepted" ){
+                    $total_accepted += 1;
+                }elseif( $status = "Canceled"){
+                    $total_canceled += 1;
                 }
-
-
             }
-        }else {
-            echo "no leave found";
+        }else{
+            $total_accepted = $total_pending = $total_canceled = $total_applied = 0;
         }
 
 
-        // highest paid employee
+
+        // leave status--------------------------------------------------------------------------------------------------------------
+        $currentDay = date( 'Y-m-d', strtotime("today") );
+
+        $last_leave_status = "No leave appliyed";
+        $upcoming_leave_status = "";
+
+        // for last leave status
+        $check_leave = "SELECT * FROM emp_leave WHERE email = '$_SESSION[email_emp]' ";
+        $s = mysqli_query($conn , $check_leave);
+        if( mysqli_num_rows($s) > 0 ){
+            while( $info = mysqli_fetch_assoc($s) ){
+               $last_leave_status =  $info["status"] ;
+            }
+    }
+
+
+    // for next leave date
+    $check_ = "SELECT * FROM emp_leave WHERE email = '$_SESSION[email_emp]' ORDER BY start_date ASC ";
+    $e = mysqli_query($conn , $check_); 
+    if( mysqli_num_rows($e) > 0 ){
+        while( $info = mysqli_fetch_assoc($e) ){
+            $date = $info["start_date"] ;
+            $last_leave =  $info["status"] ;
+           if ( $date > $currentDay && $last_leave == "Accepted" ){
+               $upcoming_leave_status = date('jS F', strtotime($date) ) ;
+               break;
+           }
+        }
+}
+
+
+        // total employee--------------------------------------------------------------------------------------------
+        $select_emp = "SELECT * FROM employee";
+        $total_emp = mysqli_query($conn , $select_emp);
+
+       
+
+
+
+        // highest paid employee--------------------------------------------------------------------------
         $sql_highest_salary =  "SELECT * FROM employee ORDER BY salary DESC";
         $emp_ = mysqli_query($conn , $sql_highest_salary);
 
@@ -58,27 +90,29 @@ require_once "include/header.php";
         <div class="col-4">
             <div class="card shadow " style="width: 18rem;">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item text-center">Admins</li>
-                    <li class="list-group-item">Total Admin : <?php echo mysqli_num_rows($total_admins); ?> </li>
-                    <li class="list-group-item text-center"><a href="manage-admin.php"><b>View All Admins</b></a></li>
+                    <li class="list-group-item text-center"> <b>Leave Status</b> </li>
+                    <li class="list-group-item">Upcoming Leave on :  <?php echo  $upcoming_leave_status ; ?>  </li>
+                    <li class="list-group-item">Last Leave's Status :  <?php echo ucwords($last_leave_status) ;  ?> </li>
                 </ul>
             </div>
         </div>
         <div class="col-4">
             <div class="card shadow " style="width: 18rem;">
                 <ul class="list-group list-group-flush">
-                    <li class="list-group-item text-center">Employees</li>
+                    <li class="list-group-item text-center"> <b>Applied leaves</b> </li>
+                    <li class="list-group-item">Total Accepted  : <?php echo $total_accepted;  ?> </li>
+                    <li class="list-group-item">Total Canceled  : <?php echo $total_canceled; ?> </li>
+                    <li class="list-group-item">Total Pending  : <?php echo $total_pending; ?> </li>
+                    <li class="list-group-item">Total Applied  : <?php echo $total_applied; ?> </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-4">
+            <div class="card shadow " style="width: 18rem;">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item text-center"> <b>Employees</b>  </li>
                     <li class="list-group-item">Total Employees : <?php echo mysqli_num_rows($total_emp); ?></li>
-                    <li class="list-group-item text-center"><a href="manage-employee.php"> <b>View All Employees</b></a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="col-4">
-            <div class="card shadow " style="width: 18rem;">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item text-center">Employees on  Leave (Daywise)</li>
-                    <li class="list-group-item">Today :  <?php echo $today_leave; ?>  </li>
-                    <li class="list-group-item">Tomarrow :  <?php echo $tomarrow_leave; ?> </li>
+                    <li class="list-group-item text-center"><a href="view-employee.php"> <b>View All Employees</b></a></li>
                 </ul>
             </div>
         </div>
